@@ -1,0 +1,45 @@
+@VentasBackend_HostAddress = http://localhost:5005
+@empresaId = 1
+
+GET {{VentasBackend_HostAddress}}/health
+Accept: application/json
+
+###
+
+POST {{VentasBackend_HostAddress}}/api/ventas/cuentas
+Content-Type: application/json
+x-empresa-id: {{empresaId}}
+
+{
+	"idAlmacen": 1,
+	"idCliente": null,
+	"mesero": "Carlos"
+}
+
+###
+
+POST {{VentasBackend_HostAddress}}/api/ventas/cuentas/1/items
+Content-Type: application/json
+x-empresa-id: {{empresaId}}
+
+{
+	"idProducto": 1,
+	"cantidad": 2,
+	"precioUnitario": 12.5,
+	"nota": "sin cebolla"
+}
+
+###
+
+POST {{VentasBackend_HostAddress}}/api/ventas/cuentas/1/pagar
+Content-Type: application/json
+x-empresa-id: {{empresaId}}
+
+{
+	"metodoPago": "EFECTIVO"
+}
+
+###
+
+GET {{VentasBackend_HostAddress}}/api/ventas/cuentas/1
+x-empresa-id: {{empresaId}}
