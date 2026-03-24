@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VentasBackend.Business.Interface;
+using VentasBackend.Application.Interface;
 using VentasBackend.Domain.DTOs;
 
 namespace VentasBackend.Presentation.Controllers;

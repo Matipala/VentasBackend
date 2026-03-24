@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace VentasBackend.Business.Interface
+namespace VentasBackend.Application.Interface
 {
     public interface IStockGateway
     {

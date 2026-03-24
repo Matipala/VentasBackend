@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VentasBackend.Data;
-using VentasBackend.Business.Interface;
+using VentasBackend.Application.Interface;
 using VentasBackend.Infrastructure.Configuration;
 using VentasBackend.Infrastructure.Services;
 

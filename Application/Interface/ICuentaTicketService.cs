@@ -1,6 +1,6 @@
 using VentasBackend.Domain.DTOs;
 
-namespace VentasBackend.Business.Interface;
+namespace VentasBackend.Application.Interface;
 
 public interface ICuentaTicketService
 {

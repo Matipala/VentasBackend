@@ -8,7 +8,7 @@ Este proyecto implementa la lógica y API REST para la gestión de ventas y su i
 
 ## Estructura del proyecto
 
-- **Business/Interface**: Interfaces de servicios de negocio (contratos).
+- **Application/Interface**: Interfaces de servicios de negocio (contratos).
 - **Domain/Data**: Contexto de base de datos (DbContext).
 - **Domain/DTOs**: Objetos de transferencia de datos (requests/responses).
 - **Domain/Entities**: Entidades del dominio (tablas principales).

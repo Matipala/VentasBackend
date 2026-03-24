@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using VentasBackend.Business.Interface;
+using VentasBackend.Application.Interface;
 using VentasBackend.Data;
 using VentasBackend.Domain.DTOs;
 using VentasBackend.Domain.Entities;

@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using VentasBackend.Business.Interface;
+using VentasBackend.Application.Interface;
 
 namespace VentasBackend.Infrastructure.Services
 {
