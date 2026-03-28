@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using VentasBackend.Data;
+using VentasBackend.Infrastructure.Data;
 
 #nullable disable
 
@@ -55,6 +55,37 @@ namespace VentasBackend.Migrations
                     b.HasIndex("IdEmpresa", "Telefono");
 
                     b.ToTable("clientes", "ventas");
+                });
+
+            modelBuilder.Entity("VentasBackend.Domain.Entities.ConfiguracionVentas", b =>
+                {
+                    b.Property<int>("IdConfiguracion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_configuracion");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdConfiguracion"));
+
+                    b.Property<int>("IdEmpresa")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_empresa");
+
+                    b.Property<string>("NombreImpuesto")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("nombre_impuesto");
+
+                    b.Property<decimal>("PorcentajeImpuesto")
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("porcentaje_impuesto");
+
+                    b.HasKey("IdConfiguracion");
+
+                    b.HasIndex("IdEmpresa")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracionVentas", "ventas");
                 });
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.CuentaTicket", b =>
@@ -143,9 +174,11 @@ namespace VentasBackend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("cantidad");
 
-                    b.Property<bool>("ComandaEnviada")
-                        .HasColumnType("boolean")
-                        .HasColumnName("comanda_enviada");
+                    b.Property<string>("EstadoComanda")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado_comanda");
 
                     b.Property<int>("IdCuentaTicket")
                         .HasColumnType("integer")
@@ -169,7 +202,7 @@ namespace VentasBackend.Migrations
 
                     b.HasKey("IdCuentaTicketItem");
 
-                    b.HasIndex("ComandaEnviada");
+                    b.HasIndex("EstadoComanda");
 
                     b.HasIndex("IdCuentaTicket");
 

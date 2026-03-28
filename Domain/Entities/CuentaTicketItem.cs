@@ -28,6 +28,7 @@ public class CuentaTicketItem
     [Column("nota")]
     public string? Nota { get; set; }
 
-    [Column("comanda_enviada")]
-    public bool ComandaEnviada { get; set; }
+    [Column("estado_comanda")]
+    [MaxLength(20)]
+    public string EstadoComanda { get; set; } = "NUEVO";
 }

@@ -1,4 +1,4 @@
-namespace VentasBackend.Domain.DTOs;
+namespace VentasBackend.Application.DTOs;
 
 public class CrearCuentaTicketRequest
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VentasBackend.Domain.Entities;
 
-namespace VentasBackend.Data;
+namespace VentasBackend.Infrastructure.Data;
 
 public class VentasDbContext : DbContext
 {
@@ -14,6 +14,7 @@ public class VentasDbContext : DbContext
     public DbSet<CuentaTicket> CuentasTickets => Set<CuentaTicket>();
     public DbSet<CuentaTicketItem> CuentasTicketItems => Set<CuentaTicketItem>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<ConfiguracionVentas> Configuracion => Set<ConfiguracionVentas>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,7 +77,7 @@ public class VentasDbContext : DbContext
 
             entity.HasIndex(e => e.IdCuentaTicket);
             entity.HasIndex(e => e.IdProducto);
-            entity.HasIndex(e => e.ComandaEnviada);
+            entity.HasIndex(e => e.EstadoComanda);
         });
 
         modelBuilder.Entity<Pago>(entity =>
@@ -98,6 +99,14 @@ public class VentasDbContext : DbContext
             entity.HasIndex(e => e.IdEmpresa);
             entity.HasIndex(e => e.IdCuentaTicket);
             entity.HasIndex(e => e.FechaPago);
+        });
+
+        modelBuilder.Entity<ConfiguracionVentas>(entity =>
+        {
+            entity.ToTable("ConfiguracionVentas", "ventas");
+            entity.HasKey(e => e.IdConfiguracion);
+            entity.Property(e => e.PorcentajeImpuesto).HasColumnType("numeric(5,2)");
+            entity.HasIndex(e => e.IdEmpresa).IsUnique();
         });
     }
 }

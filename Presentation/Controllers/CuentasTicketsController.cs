@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VentasBackend.Application.Interface;
-using VentasBackend.Domain.DTOs;
+using VentasBackend.Application.DTOs;
 
 namespace VentasBackend.Presentation.Controllers;
 
@@ -13,6 +13,14 @@ public class CuentasTicketsController : BaseController
     public CuentasTicketsController(ICuentaTicketService cuentaTicketService)
     {
         _cuentaTicketService = cuentaTicketService;
+    }
+
+    [HttpGet("abiertas")]
+    public async Task<IActionResult> GetAbiertas()
+    {
+        var empresaId = GetEmpresaId();
+        var cuentas = await _cuentaTicketService.ListarAbiertasAsync(empresaId);
+        return Ok(cuentas);
     }
 
     [HttpPost]
@@ -38,12 +46,59 @@ public class CuentasTicketsController : BaseController
 
         return Ok(result.Cuenta);
     }
-
     [HttpPost("{idCuentaTicket:int}/pagar")]
     public async Task<IActionResult> Pagar(int idCuentaTicket, [FromBody] PagarCuentaTicketRequest request)
     {
         var empresaId = GetEmpresaId();
         var result = await _cuentaTicketService.PagarCuentaAsync(idCuentaTicket, request, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{idCuentaTicket:int}/comanda")]
+    public async Task<IActionResult> EnviarComanda(int idCuentaTicket)
+    {
+        var empresaId = GetEmpresaId();
+        var result = await _cuentaTicketService.ProcesarComandaAsync(idCuentaTicket, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPatch("{idCuentaTicket:int}/mesero")]
+    public async Task<IActionResult> ActualizarMesero(int idCuentaTicket, [FromBody] UpdateMeseroRequest request)
+    {
+        var empresaId = GetEmpresaId();
+        var result = await _cuentaTicketService.ActualizarMeseroAsync(idCuentaTicket, request.NuevoMesero, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{idCuentaTicket:int}/cancelar")]
+    public async Task<IActionResult> Cancelar(int idCuentaTicket)
+    {
+        var empresaId = GetEmpresaId();
+        var result = await _cuentaTicketService.CancelarCuentaAsync(idCuentaTicket, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{idCuentaTicket:int}/reenviar-comanda")]
+    public async Task<IActionResult> ReenviarComanda(int idCuentaTicket)
+    {
+        var empresaId = GetEmpresaId();
+        var result = await _cuentaTicketService.ReenviarComandaAsync(idCuentaTicket, empresaId);
 
         if (!result.Exito)
             return BadRequest(new { mensaje = result.Mensaje });

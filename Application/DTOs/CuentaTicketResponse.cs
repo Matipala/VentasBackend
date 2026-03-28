@@ -1,4 +1,4 @@
-namespace VentasBackend.Domain.DTOs;
+namespace VentasBackend.Application.DTOs;
 
 public class CuentaTicketResponse
 {
@@ -12,4 +12,5 @@ public class CuentaTicketResponse
     public decimal Total { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaPago { get; set; }
+    public List<CuentaTicketItemResponse> Items { get; set; } = new();
 }

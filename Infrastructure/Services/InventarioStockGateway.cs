@@ -18,31 +18,40 @@ namespace VentasBackend.Infrastructure.Services
             _baseUrl = configuration["InventoryApi:BaseUrl"] ?? throw new ArgumentNullException("InventoryApi:BaseUrl");
         }
 
-        public async Task<bool> ValidarStockAsync(int productoId, int almacenId, decimal cantidad)
+        public async Task<bool> ValidarStockAsync(int productoId, int almacenId, decimal cantidad, int idEmpresa)
         {
             var url = $"{_baseUrl}/api/stock/validar";
-            var response = await _httpClient.PostAsJsonAsync(url, new { productoId, almacenId, cantidad });
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("x-empresa-id", idEmpresa.ToString());
+            request.Content = JsonContent.Create(new { ProductoId = productoId, AlmacenId = almacenId, Cantidad = cantidad });
+            
+            var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode) return false;
-            var result = await response.Content.ReadFromJsonAsync<bool>();
-            return result;
+            
+            return await response.Content.ReadFromJsonAsync<bool>();
         }
 
-        public async Task<bool> DescontarStockAsync(int productoId, int almacenId, decimal cantidad)
+        public async Task<bool> DescontarStockAsync(int productoId, int almacenId, decimal cantidad, int idEmpresa)
         {
             var url = $"{_baseUrl}/api/stock/descontar";
-            var response = await _httpClient.PostAsJsonAsync(url, new { productoId, almacenId, cantidad });
-            if (!response.IsSuccessStatusCode) return false;
-            var result = await response.Content.ReadFromJsonAsync<bool>();
-            return result;
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("x-empresa-id", idEmpresa.ToString());
+            request.Content = JsonContent.Create(new { ProductoId = productoId, AlmacenId = almacenId, Cantidad = cantidad });
+            
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
         }
 
-        public async Task<decimal> ConsultarStockActualAsync(int productoId, int almacenId)
+        public async Task<decimal> ConsultarStockActualAsync(int productoId, int almacenId, int idEmpresa)
         {
             var url = $"{_baseUrl}/api/stock/actual?productoId={productoId}&almacenId={almacenId}";
-            var response = await _httpClient.GetAsync(url);
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-empresa-id", idEmpresa.ToString());
+            
+            var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode) return 0;
-            var result = await response.Content.ReadFromJsonAsync<decimal>();
-            return result;
+            
+            return await response.Content.ReadFromJsonAsync<decimal>();
         }
     }
 }
