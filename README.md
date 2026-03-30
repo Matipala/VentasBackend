@@ -1,63 +1,73 @@
-# VentasBackend
+# InventorySaaS - Ventas
 
-Backend del módulo de ventas para InventorySaaS.
+Servicio especializado en la gestión de transacciones comerciales, procesamiento de pagos y generación de documentos de venta para el ecosistema InventorySaaS.
 
-## Descripción
+## Descripción breve
+**InventorySaaS - Ventas** es un módulo independiente que gestiona el ciclo final de la venta. Se encarga de la interacción con los clientes en el punto de venta, la validación de stock a través de una integración con el Core API, y la emisión de tickets de venta con configuración fiscal parametrizable.
 
-Este proyecto implementa la lógica y API REST para la gestión de ventas y su integración con el módulo de inventario. Utiliza ASP.NET Core, Entity Framework Core y PostgreSQL, siguiendo una arquitectura limpia.
+## Alcance funcional implementado
+Procesamiento integral de ventas, desde la selección de artículos hasta el registro del pago y la emisión del comprobante, asegurando la consistencia de los datos financieros y de inventario.
 
-## Estructura del proyecto
+## Lista de funcionalidades desarrolladas
+- **Procesamiento de Tickets:** Generación automática de comprobantes de venta con desglose de ítems.
+- **Gestión de Pagos:** Registro y validación de diferentes métodos de pago.
+- **Integración con Inventario:** Validación y descuento de stock en tiempo real mediante `IStockGateway` conectado al Core API.
+- **Configuración Fiscal:** Manejo de porcentajes de impuestos (IVA/IT) configurables por empresa.
+- **Directorio de Clientes:** Gestión de información de clientes para la emisión de facturas/tickets personalizados.
+- **Validación de Reglas de Negocio:** Prevención de ventas sin stock suficiente y validación de montos totales.
 
-- **Application/Interface**: Interfaces de servicios de negocio (contratos).
-- **Domain/Data**: Contexto de base de datos (DbContext).
-- **Domain/DTOs**: Objetos de transferencia de datos (requests/responses).
-- **Domain/Entities**: Entidades del dominio (tablas principales).
-- **Infrastructure/Configuration**: Clases para configuración tipada.
-- **Infrastructure/Services**: Implementaciones de servicios y gateways.
-- **Presentation/Controllers**: Controladores de la API (endpoints HTTP).
+## 🛠️ Tecnologías utilizadas
+- **Runtime:** [.NET 9.0](https://dotnet.microsoft.com/)
+- **ORM:** [Entity Framework Core 9.0](https://learn.microsoft.com/ef/core/)
+- **Base de Datos:** [PostgreSQL](https://www.postgresql.org/)
+- **Comunicación entre servicios:** HTTP Client / Gateways personalizados.
+- **Documentación:** [Swashbuckle (Swagger)](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)
 
-## Configuración
+## Instrucciones de ejecución
 
-1. Edita `appsettings.json` con tus datos de conexión y la URL del backend de inventario:
+### Requisitos previos
+- .NET 9.0 SDK
+- PostgreSQL 15+
+- **Nota:** La [Core API (Inventario)](file:///Users/josue/Documents/7moSemestre/TallerSoftwarell/InventorySaaSBackend/README.md) debe estar activa para validar stock.
 
-	 ```json
-	 {
-		 "ConnectionStrings": {
-			 "DefaultConnection": "Host=tulocalhost;Port=tupuerto;Database=tudatabase;Username=tuuser;Password=tupassword"
-		 },
-		 "InventoryApi": {
-			 "BaseUrl": "http://localhost:0000"
-		 },
-		 "Sales": {
-			 "GlobalTaxPercent": 13
-		 }
-	 }
-	 ```
+### Pasos para iniciar el servicio
+1. **Configurar la base de datos e integración:**
+   Asegúrate de configurar la conexión y la URL del API de Inventario en `appsettings.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Host=tulocal;Database=tudb;Username=tuusuario;Password=tu_pass"
+     },
+     "InventoryApi": {
+       "BaseUrl": "http://localhost:5140"
+     },
+     "Sales": {
+       "GlobalTaxPercent": 13
+     }
+   }
+   ```
+2. **Restaurar dependencias:**
+   ```bash
+   dotnet restore
+   ```
+3. **Aplicar migraciones:**
+   ```bash
+   dotnet ef database update
+   ```
+4. **Ejecutar la aplicación:**
+   ```bash
+   dotnet run
+   ```
+   Accede a la documentación interactiva en `/swagger` para probar los endpoints de venta.
 
-2. Aplica las migraciones de la base de datos:
-
-	 ```
-	 dotnet ef database update
-	 ```
-
-## Ejecución
-
-1. Restaura y compila el proyecto:
-
-	 ```
-	 dotnet restore
-	 dotnet build
-	 ```
-
-2. Ejecuta el backend:
-
-	 ```
-	 dotnet run
-	 ```
-
-3. La API estará disponible en `https://localhost:0000` (o el puerto configurado).
-
-
-## Integración con Inventario
-
-El servicio utiliza un gateway HTTP (`IStockGateway`) para validar y descontar stock llamando al backend de inventario. La URL se configura en `appsettings.json`.
+## 📂 Estructura general del repositorio
+```text
+├── Application/    # Interfaces de servicios y lógica de orquestación
+├── Domain/         # 
+│   ├── Entities/   # Definición de tablas (Venta, Pago, Cliente, Ticket)
+│   ├── DTOs/       # Objetos de transferencia para requests/responses
+│   └── Data/       # Contexto de base de datos
+├── Infrastructure/ # Implementaciones de gateways para inventario y persistencia
+├── Presentation/   # Endpoints de la API y controladores
+└── Migrations/     # Historial de cambios en la base de datos
+```
