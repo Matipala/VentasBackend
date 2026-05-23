@@ -5,8 +5,8 @@ using VentasBackend.Application.DTOs;
 namespace VentasBackend.Presentation.Controllers;
 
 [ApiController]
-[Route("api/ventas/cuentas")]
-public class CuentasTicketsController : BaseController
+[Route("api/sales/companies/{companyCen}/tickets")]
+public class CuentasTicketsController : ControllerBase
 {
     private readonly ICuentaTicketService _cuentaTicketService;
 
@@ -15,18 +15,24 @@ public class CuentasTicketsController : BaseController
         _cuentaTicketService = cuentaTicketService;
     }
 
-    [HttpGet("abiertas")]
-    public async Task<IActionResult> GetAbiertas()
+    private int ResolveCompanyId(string companyCen)
     {
-        var empresaId = GetEmpresaId();
+        if (int.TryParse(companyCen, out int id)) return id;
+        return 0; // Or throw
+    }
+
+    [HttpGet("open")]
+    public async Task<IActionResult> GetAbiertas(string companyCen)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
         var cuentas = await _cuentaTicketService.ListarAbiertasAsync(empresaId);
         return Ok(cuentas);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Crear([FromBody] CrearCuentaTicketRequest request)
+    public async Task<IActionResult> Crear(string companyCen, [FromBody] CrearCuentaTicketRequest request)
     {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
         var result = await _cuentaTicketService.CrearCuentaAsync(request, empresaId);
 
         if (!result.Exito)
@@ -35,10 +41,17 @@ public class CuentasTicketsController : BaseController
         return Ok(result.Cuenta);
     }
 
-    [HttpPost("{idCuentaTicket:int}/items")]
-    public async Task<IActionResult> AgregarItem(int idCuentaTicket, [FromBody] AgregarCuentaTicketItemRequest request)
+    private int ResolveTicketId(string ticketCen)
     {
-        var empresaId = GetEmpresaId();
+        if (int.TryParse(ticketCen, out int id)) return id;
+        return 0;
+    }
+
+    [HttpPost("{ticketCen}/items")]
+    public async Task<IActionResult> AgregarItem(string companyCen, string ticketCen, [FromBody] AgregarCuentaTicketItemRequest request)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var idCuentaTicket = ResolveTicketId(ticketCen);
         var result = await _cuentaTicketService.AgregarItemAsync(idCuentaTicket, request, empresaId);
 
         if (!result.Exito)
@@ -46,10 +59,12 @@ public class CuentasTicketsController : BaseController
 
         return Ok(result.Cuenta);
     }
-    [HttpPost("{idCuentaTicket:int}/pagar")]
-    public async Task<IActionResult> Pagar(int idCuentaTicket, [FromBody] PagarCuentaTicketRequest request)
+
+    [HttpPost("{ticketCen}/payment")]
+    public async Task<IActionResult> Pagar(string companyCen, string ticketCen, [FromBody] PagarCuentaTicketRequest request)
     {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
+        var idCuentaTicket = ResolveTicketId(ticketCen);
         var result = await _cuentaTicketService.PagarCuentaAsync(idCuentaTicket, request, empresaId);
 
         if (!result.Exito)
@@ -58,10 +73,11 @@ public class CuentasTicketsController : BaseController
         return Ok(result.Cuenta);
     }
 
-    [HttpPost("{idCuentaTicket:int}/comanda")]
-    public async Task<IActionResult> EnviarComanda(int idCuentaTicket)
+    [HttpPost("{ticketCen}/order")]
+    public async Task<IActionResult> EnviarComanda(string companyCen, string ticketCen)
     {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
+        var idCuentaTicket = ResolveTicketId(ticketCen);
         var result = await _cuentaTicketService.ProcesarComandaAsync(idCuentaTicket, empresaId);
 
         if (!result.Exito)
@@ -70,46 +86,11 @@ public class CuentasTicketsController : BaseController
         return Ok(result.Cuenta);
     }
 
-    [HttpPatch("{idCuentaTicket:int}/mesero")]
-    public async Task<IActionResult> ActualizarMesero(int idCuentaTicket, [FromBody] UpdateMeseroRequest request)
+    [HttpGet("{ticketCen}")]
+    public async Task<IActionResult> GetById(string companyCen, string ticketCen)
     {
-        var empresaId = GetEmpresaId();
-        var result = await _cuentaTicketService.ActualizarMeseroAsync(idCuentaTicket, request.NuevoMesero, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpPost("{idCuentaTicket:int}/cancelar")]
-    public async Task<IActionResult> Cancelar(int idCuentaTicket)
-    {
-        var empresaId = GetEmpresaId();
-        var result = await _cuentaTicketService.CancelarCuentaAsync(idCuentaTicket, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpPost("{idCuentaTicket:int}/reenviar-comanda")]
-    public async Task<IActionResult> ReenviarComanda(int idCuentaTicket)
-    {
-        var empresaId = GetEmpresaId();
-        var result = await _cuentaTicketService.ReenviarComandaAsync(idCuentaTicket, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpGet("{idCuentaTicket:int}")]
-    public async Task<IActionResult> GetById(int idCuentaTicket)
-    {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
+        var idCuentaTicket = ResolveTicketId(ticketCen);
         var cuenta = await _cuentaTicketService.ObtenerCuentaAsync(idCuentaTicket, empresaId);
 
         if (cuenta == null)
