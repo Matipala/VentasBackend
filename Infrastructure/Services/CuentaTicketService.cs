@@ -12,11 +12,13 @@ public class CuentaTicketService : ICuentaTicketService
 {
     private readonly VentasDbContext _context;
     private readonly IHubContext<KdsHub> _hubContext;
+    private readonly IInventoryClient _inventoryClient;
 
-    public CuentaTicketService(VentasDbContext context, IHubContext<KdsHub> hubContext)
+    public CuentaTicketService(VentasDbContext context, IHubContext<KdsHub> hubContext, IInventoryClient inventoryClient)
     {
         _context = context;
         _hubContext = hubContext;
+        _inventoryClient = inventoryClient;
     }
 
     public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> CrearCuentaAsync(CrearCuentaTicketRequest request, int idEmpresa)
@@ -117,6 +119,31 @@ public class CuentaTicketService : ICuentaTicketService
 
         if (!items.Any()) return (false, "La cuenta no tiene items para pagar", null);
 
+        // --- INTEGRACION CON INVENTARIO ---
+        var companyCen = idEmpresa.ToString();
+        var warehouseCen = cuenta.IdAlmacen.ToString();
+        var stockItems = items.Select(i => new StockItemDto
+        {
+            ProductCen = i.IdProducto.ToString(),
+            Quantity = i.Cantidad
+        }).ToList();
+
+        // 1. Validar Stock
+        try
+        {
+            var validation = await _inventoryClient.ValidateStockAsync(companyCen, warehouseCen, stockItems);
+            if (!validation.IsValid)
+            {
+                var faltantes = string.Join(", ", validation.Requirements.Select(r => $"{r.ProductCen} (Faltan {r.MissingQuantity})"));
+                return (false, $"Stock insuficiente en Inventario: {faltantes}", null);
+            }
+        }
+        catch
+        {
+            return (false, "Error al validar stock con el sistema de inventario.", null);
+        }
+
+        // 2. Procesar Pago local
         var pago = new Pago
         {
             IdEmpresa = idEmpresa,
@@ -132,6 +159,16 @@ public class CuentaTicketService : ICuentaTicketService
         cuenta.FechaPago = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+
+        // 3. Consumir Stock en Inventario
+        try
+        {
+            await _inventoryClient.ConsumeStockAsync(companyCen, warehouseCen, cuenta.IdCuentaTicket.ToString(), "Venta POS", stockItems);
+        }
+        catch
+        {
+            return (false, "Error al consumir stock en el sistema de inventario.", null);
+        }
 
         return (true, "Cuenta pagada exitosamente", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }

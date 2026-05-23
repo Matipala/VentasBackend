@@ -4,7 +4,9 @@ using VentasBackend.Application.Interface;
 using VentasBackend.Infrastructure.Configuration;
 using VentasBackend.Application.Services;
 using VentasBackend.Infrastructure.Middlewares;
+using VentasBackend.Infrastructure.Services;
 using VentasBackend.Presentation.Hubs;
+
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,8 @@ builder.Services.AddScoped<ICuentaTicketService, CuentaTicketService>();
 builder.Services.AddScoped<IConfiguracionService, ConfiguracionService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IKdsService, KdsService>();
+builder.Services.AddHttpClient<IInventoryClient, InventoryClient>();
+builder.Services.AddScoped<IInventoryClient, InventoryClient>();
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -51,10 +55,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// if (!app.Environment.IsDevelopment())
+// {
+//     app.UseHttpsRedirection();
+// }
 
 app.UseAuthorization();
 app.MapControllers();
