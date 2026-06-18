@@ -15,13 +15,13 @@ public class CuentasTicketsController : ControllerBase
         _cuentaTicketService = cuentaTicketService;
     }
 
-    private int ResolveCompanyId(string companyCen)
+    private Guid ResolveCompanyId(string companyCen)
     {
-        if (int.TryParse(companyCen, out int id)) return id;
-        return 0; // Or throw
+        if (Guid.TryParse(companyCen, out Guid id)) return id;
+        return Guid.Empty;
     }
 
-    [HttpGet("open")]
+    [HttpGet]
     public async Task<IActionResult> GetAbiertas(string companyCen)
     {
         var empresaId = ResolveCompanyId(companyCen);
@@ -41,61 +41,87 @@ public class CuentasTicketsController : ControllerBase
         return Ok(result.Cuenta);
     }
 
-    private int ResolveTicketId(string ticketCen)
-    {
-        if (int.TryParse(ticketCen, out int id)) return id;
-        return 0;
-    }
-
-    [HttpPost("{ticketCen}/items")]
-    public async Task<IActionResult> AgregarItem(string companyCen, string ticketCen, [FromBody] AgregarCuentaTicketItemRequest request)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string companyCen, Guid id)
     {
         var empresaId = ResolveCompanyId(companyCen);
-        var idCuentaTicket = ResolveTicketId(ticketCen);
-        var result = await _cuentaTicketService.AgregarItemAsync(idCuentaTicket, request, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpPost("{ticketCen}/payment")]
-    public async Task<IActionResult> Pagar(string companyCen, string ticketCen, [FromBody] PagarCuentaTicketRequest request)
-    {
-        var empresaId = ResolveCompanyId(companyCen);
-        var idCuentaTicket = ResolveTicketId(ticketCen);
-        var result = await _cuentaTicketService.PagarCuentaAsync(idCuentaTicket, request, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpPost("{ticketCen}/order")]
-    public async Task<IActionResult> EnviarComanda(string companyCen, string ticketCen)
-    {
-        var empresaId = ResolveCompanyId(companyCen);
-        var idCuentaTicket = ResolveTicketId(ticketCen);
-        var result = await _cuentaTicketService.ProcesarComandaAsync(idCuentaTicket, empresaId);
-
-        if (!result.Exito)
-            return BadRequest(new { mensaje = result.Mensaje });
-
-        return Ok(result.Cuenta);
-    }
-
-    [HttpGet("{ticketCen}")]
-    public async Task<IActionResult> GetById(string companyCen, string ticketCen)
-    {
-        var empresaId = ResolveCompanyId(companyCen);
-        var idCuentaTicket = ResolveTicketId(ticketCen);
-        var cuenta = await _cuentaTicketService.ObtenerCuentaAsync(idCuentaTicket, empresaId);
+        var cuenta = await _cuentaTicketService.ObtenerCuentaAsync(id, empresaId);
 
         if (cuenta == null)
             return NotFound(new { mensaje = "Cuenta no encontrada." });
 
         return Ok(cuenta);
+    }
+
+    [HttpPost("{id}/items")]
+    public async Task<IActionResult> AgregarItem(string companyCen, Guid id, [FromBody] AgregarCuentaTicketItemRequest request)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.AgregarItemAsync(id, request, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{id}/payment")]
+    public async Task<IActionResult> Pagar(string companyCen, Guid id, [FromBody] PagarCuentaTicketRequest request)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.PagarCuentaAsync(id, request, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{id}/send")]
+    public async Task<IActionResult> EnviarComanda(string companyCen, Guid id)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.ProcesarComandaAsync(id, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPatch("{id}/waiter")]
+    public async Task<IActionResult> ActualizarMesero(string companyCen, Guid id, [FromBody] UpdateMeseroRequest request)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.ActualizarMeseroAsync(id, request.NuevoMesero, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{id}/cancel")]
+    public async Task<IActionResult> Cancelar(string companyCen, Guid id)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.CancelarCuentaAsync(id, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
+    }
+
+    [HttpPost("{id}/resend")]
+    public async Task<IActionResult> ReenviarComanda(string companyCen, Guid id)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
+        var result = await _cuentaTicketService.ReenviarComandaAsync(id, empresaId);
+
+        if (!result.Exito)
+            return BadRequest(new { mensaje = result.Mensaje });
+
+        return Ok(result.Cuenta);
     }
 }

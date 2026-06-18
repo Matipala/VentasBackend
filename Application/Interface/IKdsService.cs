@@ -5,6 +5,6 @@ namespace VentasBackend.Application.Interface
 {
     public interface IKdsService
     {
-        Task<IEnumerable<object>> GetItemsPendientesAsync(int empresaId, string? estacion = null);
+        Task<IEnumerable<object>> GetItemsPendientesAsync(Guid empresaId, string? estacion = null);
     }
 }

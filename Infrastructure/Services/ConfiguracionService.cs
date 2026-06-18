@@ -15,14 +15,13 @@ namespace VentasBackend.Application.Services
             _context = context;
         }
 
-        public async Task<ConfiguracionVentas> ObtenerConfiguracionAsync(int empresaId)
+        public async Task<ConfiguracionVentas> ObtenerConfiguracionAsync(Guid empresaId)
         {
             var config = await _context.Configuracion
                 .FirstOrDefaultAsync(c => c.IdEmpresa == empresaId);
 
             if (config == null)
             {
-                // Retornar valores por defecto si no existe
                 return new ConfiguracionVentas 
                 { 
                     IdEmpresa = empresaId,
@@ -34,7 +33,7 @@ namespace VentasBackend.Application.Services
             return config;
         }
 
-        public async Task<ConfiguracionVentas> ActualizarConfiguracionAsync(int empresaId, ConfiguracionVentas request)
+        public async Task<ConfiguracionVentas> ActualizarConfiguracionAsync(Guid empresaId, ConfiguracionVentas request)
         {
             var config = await _context.Configuracion
                 .FirstOrDefaultAsync(c => c.IdEmpresa == empresaId);

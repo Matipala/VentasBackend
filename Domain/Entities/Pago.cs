@@ -8,13 +8,13 @@ public class Pago
 {
     [Key]
     [Column("id_pago")]
-    public int IdPago { get; set; }
+    public Guid IdPago { get; set; } = Guid.NewGuid();
 
     [Column("id_empresa")]
-    public int IdEmpresa { get; set; }
+    public Guid IdEmpresa { get; set; }
 
     [Column("id_cuenta_ticket")]
-    public int IdCuentaTicket { get; set; }
+    public Guid IdCuentaTicket { get; set; }
 
     [Column("metodo_pago")]
     [MaxLength(20)]

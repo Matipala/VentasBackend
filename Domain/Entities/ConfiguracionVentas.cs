@@ -8,10 +8,10 @@ public class ConfiguracionVentas
 {
     [Key]
     [Column("id_configuracion")]
-    public int IdConfiguracion { get; set; }
+    public Guid IdConfiguracion { get; set; } = Guid.NewGuid();
 
     [Column("id_empresa")]
-    public int IdEmpresa { get; set; }
+    public Guid IdEmpresa { get; set; }
 
     [Column("nombre_impuesto")]
     [MaxLength(50)]

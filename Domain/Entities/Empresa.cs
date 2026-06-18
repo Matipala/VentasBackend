@@ -8,7 +8,7 @@ public class Empresa
 {
     [Key]
     [Column("id_empresa")]
-    public int IdEmpresa { get; set; }
+    public Guid IdEmpresa { get; set; } = Guid.NewGuid();
 
     [Column("nombre")]
     [MaxLength(200)]

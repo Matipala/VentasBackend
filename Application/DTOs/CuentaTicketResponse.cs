@@ -2,10 +2,10 @@ namespace VentasBackend.Application.DTOs;
 
 public class CuentaTicketResponse
 {
-    public int IdCuentaTicket { get; set; }
+    public Guid IdCuentaTicket { get; set; }
     public int Numero { get; set; }
     public string Estado { get; set; } = string.Empty;
-    public int IdAlmacen { get; set; }
+    public Guid IdAlmacen { get; set; }
     public string Mesero { get; set; } = string.Empty;
     public decimal Subtotal { get; set; }
     public decimal Impuesto { get; set; }

@@ -8,16 +8,16 @@ public class CuentaTicket
 {
     [Key]
     [Column("id_cuenta_ticket")]
-    public int IdCuentaTicket { get; set; }
+    public Guid IdCuentaTicket { get; set; } = Guid.NewGuid();
 
     [Column("id_empresa")]
-    public int IdEmpresa { get; set; }
+    public Guid IdEmpresa { get; set; }
 
     [Column("id_almacen")]
-    public int IdAlmacen { get; set; }
+    public Guid IdAlmacen { get; set; }
 
     [Column("id_cliente")]
-    public int? IdCliente { get; set; }
+    public Guid? IdCliente { get; set; }
 
     [Column("numero")]
     public int Numero { get; set; }

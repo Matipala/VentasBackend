@@ -8,13 +8,13 @@ public class CuentaTicketItem
 {
     [Key]
     [Column("id_cuenta_ticket_item")]
-    public int IdCuentaTicketItem { get; set; }
+    public Guid IdCuentaTicketItem { get; set; } = Guid.NewGuid();
 
     [Column("id_cuenta_ticket")]
-    public int IdCuentaTicket { get; set; }
+    public Guid IdCuentaTicket { get; set; }
 
     [Column("id_producto")]
-    public int IdProducto { get; set; }
+    public Guid IdProducto { get; set; }
 
     [Column("cantidad")]
     public int Cantidad { get; set; }

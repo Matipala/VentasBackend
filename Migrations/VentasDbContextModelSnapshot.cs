@@ -25,15 +25,14 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.Cliente", b =>
                 {
-                    b.Property<int>("IdCliente")
+                    b.Property<Guid>("IdCliente")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_cliente");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_cliente")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCliente"));
-
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdEmpresa")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_empresa");
 
                     b.Property<string>("Nombre")
@@ -59,15 +58,14 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.ConfiguracionVentas", b =>
                 {
-                    b.Property<int>("IdConfiguracion")
+                    b.Property<Guid>("IdConfiguracion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_configuracion");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_configuracion")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdConfiguracion"));
-
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdEmpresa")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_empresa");
 
                     b.Property<string>("NombreImpuesto")
@@ -90,12 +88,11 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.CuentaTicket", b =>
                 {
-                    b.Property<int>("IdCuentaTicket")
+                    b.Property<Guid>("IdCuentaTicket")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_cuenta_ticket");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCuentaTicket"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_cuenta_ticket")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -113,16 +110,16 @@ namespace VentasBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_pago");
 
-                    b.Property<int>("IdAlmacen")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdAlmacen")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_almacen");
 
-                    b.Property<int?>("IdCliente")
-                        .HasColumnType("integer")
+                    b.Property<Guid?>("IdCliente")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_cliente");
 
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdEmpresa")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_empresa");
 
                     b.Property<decimal>("Impuesto")
@@ -163,12 +160,11 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.CuentaTicketItem", b =>
                 {
-                    b.Property<int>("IdCuentaTicketItem")
+                    b.Property<Guid>("IdCuentaTicketItem")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_cuenta_ticket_item");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCuentaTicketItem"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_cuenta_ticket_item")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer")
@@ -180,12 +176,12 @@ namespace VentasBackend.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("estado_comanda");
 
-                    b.Property<int>("IdCuentaTicket")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdCuentaTicket")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_cuenta_ticket");
 
-                    b.Property<int>("IdProducto")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdProducto")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_producto");
 
                     b.Property<string>("Nota")
@@ -213,12 +209,11 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.Empresa", b =>
                 {
-                    b.Property<int>("IdEmpresa")
+                    b.Property<Guid>("IdEmpresa")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_empresa");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEmpresa"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_empresa")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean")
@@ -242,12 +237,11 @@ namespace VentasBackend.Migrations
 
             modelBuilder.Entity("VentasBackend.Domain.Entities.Pago", b =>
                 {
-                    b.Property<int>("IdPago")
+                    b.Property<Guid>("IdPago")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_pago");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPago"));
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_pago")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("FechaPago")
                         .ValueGeneratedOnAdd()
@@ -255,12 +249,12 @@ namespace VentasBackend.Migrations
                         .HasColumnName("fecha_pago")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<int>("IdCuentaTicket")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdCuentaTicket")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_cuenta_ticket");
 
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("integer")
+                    b.Property<Guid>("IdEmpresa")
+                        .HasColumnType("uuid")
                         .HasColumnName("id_empresa");
 
                     b.Property<string>("MetodoPago")
