@@ -5,7 +5,7 @@ namespace VentasBackend.Application.DTOs;
 public class AgregarCuentaTicketItemRequest
 {
     [JsonPropertyName("idProducto")]
-    public int IdProducto { get; set; }
+    public Guid IdProducto { get; set; }
 
     [JsonPropertyName("cantidad")]
     public int Cantidad { get; set; }

@@ -21,7 +21,7 @@ public class CuentaTicketService : ICuentaTicketService
         _inventoryClient = inventoryClient;
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> CrearCuentaAsync(CrearCuentaTicketRequest request, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> CrearCuentaAsync(CrearCuentaTicketRequest request, Guid idEmpresa)
     {
         var ultimoNumero = await _context.CuentasTickets
             .Where(c => c.IdEmpresa == idEmpresa)
@@ -46,7 +46,7 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Cuenta creada exitosamente", await ObtenerCuentaAsync(nuevaCuenta.IdCuentaTicket, idEmpresa));
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> AgregarItemAsync(int idCuentaTicket, AgregarCuentaTicketItemRequest request, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> AgregarItemAsync(Guid idCuentaTicket, AgregarCuentaTicketItemRequest request, Guid idEmpresa)
     {
         var cuenta = await _context.CuentasTickets
             .FirstOrDefaultAsync(c => c.IdCuentaTicket == idCuentaTicket && c.IdEmpresa == idEmpresa);
@@ -97,7 +97,7 @@ public class CuentaTicketService : ICuentaTicketService
         var config = await _context.Configuracion.FirstOrDefaultAsync(c => c.IdEmpresa == idEmpresa);
         var pctImpuesto = config?.PorcentajeImpuesto ?? 0m;
         
-        cuenta.Impuesto = cuenta.Subtotal * (pctImpuesto / 100m);
+        cuenta.Impuesto = Math.Round(cuenta.Subtotal * (pctImpuesto / 100m), 2);
         cuenta.Total = cuenta.Subtotal + cuenta.Impuesto;
 
         await _context.SaveChangesAsync();
@@ -105,7 +105,7 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Item agregado exitosamente", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> PagarCuentaAsync(int idCuentaTicket, PagarCuentaTicketRequest request, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> PagarCuentaAsync(Guid idCuentaTicket, PagarCuentaTicketRequest request, Guid idEmpresa)
     {
         var cuenta = await _context.CuentasTickets
             .FirstOrDefaultAsync(c => c.IdCuentaTicket == idCuentaTicket && c.IdEmpresa == idEmpresa);
@@ -119,7 +119,6 @@ public class CuentaTicketService : ICuentaTicketService
 
         if (!items.Any()) return (false, "La cuenta no tiene items para pagar", null);
 
-        // --- INTEGRACION CON INVENTARIO ---
         var companyCen = idEmpresa.ToString();
         var warehouseCen = cuenta.IdAlmacen.ToString();
         var stockItems = items.Select(i => new StockItemDto
@@ -128,7 +127,6 @@ public class CuentaTicketService : ICuentaTicketService
             Quantity = i.Cantidad
         }).ToList();
 
-        // 1. Validar Stock
         try
         {
             var validation = await _inventoryClient.ValidateStockAsync(companyCen, warehouseCen, stockItems);
@@ -138,12 +136,23 @@ public class CuentaTicketService : ICuentaTicketService
                 return (false, $"Stock insuficiente en Inventario: {faltantes}", null);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error al validar stock: {ex.Message}");
+            if (ex.InnerException != null) Console.WriteLine($"Inner: {ex.InnerException.Message}");
             return (false, "Error al validar stock con el sistema de inventario.", null);
         }
 
-        // 2. Procesar Pago local
+        try
+        {
+            await _inventoryClient.ConsumeStockAsync(companyCen, warehouseCen, cuenta.IdCuentaTicket.ToString(), "Venta POS", stockItems);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al consumir stock: {ex.Message}");
+            return (false, "Error al consumir stock en el sistema de inventario.", null);
+        }
+
         var pago = new Pago
         {
             IdEmpresa = idEmpresa,
@@ -160,20 +169,10 @@ public class CuentaTicketService : ICuentaTicketService
 
         await _context.SaveChangesAsync();
 
-        // 3. Consumir Stock en Inventario
-        try
-        {
-            await _inventoryClient.ConsumeStockAsync(companyCen, warehouseCen, cuenta.IdCuentaTicket.ToString(), "Venta POS", stockItems);
-        }
-        catch
-        {
-            return (false, "Error al consumir stock en el sistema de inventario.", null);
-        }
-
         return (true, "Cuenta pagada exitosamente", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 
-    public async Task<CuentaTicketResponse?> ObtenerCuentaAsync(int idCuentaTicket, int idEmpresa)
+    public async Task<CuentaTicketResponse?> ObtenerCuentaAsync(Guid idCuentaTicket, Guid idEmpresa)
     {
         var cuenta = await _context.CuentasTickets
             .FirstOrDefaultAsync(c => c.IdCuentaTicket == idCuentaTicket && c.IdEmpresa == idEmpresa);
@@ -210,7 +209,7 @@ public class CuentaTicketService : ICuentaTicketService
         };
     }
 
-    public async Task<IEnumerable<CuentaTicketResponse>> ListarAbiertasAsync(int idEmpresa)
+    public async Task<IEnumerable<CuentaTicketResponse>> ListarAbiertasAsync(Guid idEmpresa)
     {
         var cuentas = await _context.CuentasTickets
             .Where(c => c.IdEmpresa == idEmpresa && c.Estado == "ABIERTO")
@@ -226,7 +225,7 @@ public class CuentaTicketService : ICuentaTicketService
         return result;
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ProcesarComandaAsync(int idCuentaTicket, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ProcesarComandaAsync(Guid idCuentaTicket, Guid idEmpresa)
     {
         var items = await _context.CuentasTicketItems
             .Where(i => i.IdCuentaTicket == idCuentaTicket && i.EstadoComanda == "NUEVO")
@@ -243,7 +242,7 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Comanda enviada a cocina", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ActualizarMeseroAsync(int idCuentaTicket, string nuevoMesero, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ActualizarMeseroAsync(Guid idCuentaTicket, string nuevoMesero, Guid idEmpresa)
     {
         var cuenta = await _context.CuentasTickets
             .FirstOrDefaultAsync(c => c.IdCuentaTicket == idCuentaTicket && c.IdEmpresa == idEmpresa);
@@ -256,7 +255,7 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Mesero actualizado", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 
-    public async Task<(bool Exito, string Mensaje)> ActualizarEstadoItemAsync(int idItem, string nuevoEstado, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje)> ActualizarEstadoItemAsync(Guid idItem, string nuevoEstado, Guid idEmpresa)
     {
         var item = await _context.CuentasTicketItems.FindAsync(idItem);
         if (item == null) return (false, "Item no encontrado");
@@ -268,7 +267,7 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Estado de item actualizado");
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> CancelarCuentaAsync(int idCuentaTicket, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> CancelarCuentaAsync(Guid idCuentaTicket, Guid idEmpresa)
     {
         var cuenta = await _context.CuentasTickets
             .FirstOrDefaultAsync(c => c.IdCuentaTicket == idCuentaTicket && c.IdEmpresa == idEmpresa);
@@ -282,8 +281,9 @@ public class CuentaTicketService : ICuentaTicketService
         return (true, "Cuenta cancelada", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 
-    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ReenviarComandaAsync(int idCuentaTicket, int idEmpresa)
+    public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ReenviarComandaAsync(Guid idCuentaTicket, Guid idEmpresa)
     {
+        await _hubContext.Clients.All.SendAsync("UpdateKds");
         return (true, "Comanda reenviada", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }
 }

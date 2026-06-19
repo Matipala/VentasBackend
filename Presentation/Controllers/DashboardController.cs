@@ -4,8 +4,8 @@ using VentasBackend.Application.Interface;
 namespace VentasBackend.Presentation.Controllers;
 
 [ApiController]
-[Route("api/ventas/dashboard")]
-public class DashboardController : BaseController
+[Route("api/sales/companies/{companyCen}/dashboard")]
+public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
 
@@ -14,26 +14,32 @@ public class DashboardController : BaseController
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("resumen-diario")]
-    public async Task<IActionResult> GetResumenDiario()
+    private Guid ResolveCompanyId(string companyCen)
     {
-        var empresaId = GetEmpresaId();
-        var resumen = await _dashboardService.GetResumenDiarioAsync(empresaId);
-        return Ok(resumen);
+        if (Guid.TryParse(companyCen, out Guid id)) return id;
+        return Guid.Empty;
     }
 
-    [HttpGet("top-productos")]
-    public async Task<IActionResult> GetTopProductos()
+    [HttpGet("daily-sales")]
+    public async Task<IActionResult> GetDailySales(string companyCen)
     {
-        var empresaId = GetEmpresaId();
-        var top = await _dashboardService.GetTopProductosAsync(empresaId);
-        return Ok(top);
+        var empresaId = ResolveCompanyId(companyCen);
+        var stats = await _dashboardService.GetResumenDiarioAsync(empresaId);
+        return Ok(stats);
     }
 
-    [HttpGet("carga-kds")]
-    public async Task<IActionResult> GetCargaKds()
+    [HttpGet("top-products")]
+    public async Task<IActionResult> GetTopProducts(string companyCen)
     {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
+        var stats = await _dashboardService.GetTopProductosAsync(empresaId);
+        return Ok(stats);
+    }
+
+    [HttpGet("kds-status")]
+    public async Task<IActionResult> GetKdsStatus(string companyCen)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
         var stats = await _dashboardService.GetCargaKdsAsync(empresaId);
         return Ok(stats);
     }

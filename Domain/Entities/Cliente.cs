@@ -8,10 +8,10 @@ public class Cliente
 {
     [Key]
     [Column("id_cliente")]
-    public int IdCliente { get; set; }
+    public Guid IdCliente { get; set; } = Guid.NewGuid();
 
     [Column("id_empresa")]
-    public int IdEmpresa { get; set; }
+    public Guid IdEmpresa { get; set; }
 
     [Column("nombre")]
     [MaxLength(200)]

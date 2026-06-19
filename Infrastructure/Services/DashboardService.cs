@@ -17,7 +17,7 @@ namespace VentasBackend.Application.Services
             _context = context;
         }
 
-        public async Task<object> GetResumenDiarioAsync(int empresaId)
+        public async Task<object> GetResumenDiarioAsync(Guid empresaId)
         {
             var hoy = DateTime.UtcNow.Date;
 
@@ -37,7 +37,7 @@ namespace VentasBackend.Application.Services
             };
         }
 
-        public async Task<IEnumerable<object>> GetTopProductosAsync(int empresaId)
+        public async Task<IEnumerable<object>> GetTopProductosAsync(Guid empresaId)
         {
             var hoy = DateTime.UtcNow.Date;
 
@@ -58,7 +58,7 @@ namespace VentasBackend.Application.Services
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<object>> GetCargaKdsAsync(int empresaId)
+        public async Task<IEnumerable<object>> GetCargaKdsAsync(Guid empresaId)
         {
             return await _context.CuentasTicketItems
                 .Join(_context.CuentasTickets, i => i.IdCuentaTicket, c => c.IdCuentaTicket, (i, c) => new { Item = i, Cuenta = c })

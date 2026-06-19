@@ -26,12 +26,14 @@ public class VentasDbContext : DbContext
         {
             entity.ToTable("Empresas", "shared", t => t.ExcludeFromMigrations());
             entity.HasKey(e => e.IdEmpresa);
+            entity.Property(e => e.IdEmpresa).HasDefaultValueSql("gen_random_uuid()");
             entity.HasIndex(e => e.Nombre);
         });
 
         modelBuilder.Entity<Cliente>(entity =>
         {
             entity.HasKey(e => e.IdCliente);
+            entity.Property(e => e.IdCliente).HasDefaultValueSql("gen_random_uuid()");
             entity.HasOne<Empresa>()
                 .WithMany()
                 .HasForeignKey(e => e.IdEmpresa)
@@ -44,6 +46,7 @@ public class VentasDbContext : DbContext
         modelBuilder.Entity<CuentaTicket>(entity =>
         {
             entity.HasKey(e => e.IdCuentaTicket);
+            entity.Property(e => e.IdCuentaTicket).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Subtotal).HasColumnType("numeric(18,2)");
             entity.Property(e => e.Impuesto).HasColumnType("numeric(18,2)");
             entity.Property(e => e.Total).HasColumnType("numeric(18,2)");
@@ -67,6 +70,7 @@ public class VentasDbContext : DbContext
         modelBuilder.Entity<CuentaTicketItem>(entity =>
         {
             entity.HasKey(e => e.IdCuentaTicketItem);
+            entity.Property(e => e.IdCuentaTicketItem).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.PrecioUnitario).HasColumnType("numeric(18,2)");
             entity.Property(e => e.Subtotal).HasColumnType("numeric(18,2)");
 
@@ -83,6 +87,7 @@ public class VentasDbContext : DbContext
         modelBuilder.Entity<Pago>(entity =>
         {
             entity.HasKey(e => e.IdPago);
+            entity.Property(e => e.IdPago).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Monto).HasColumnType("numeric(18,2)");
             entity.Property(e => e.FechaPago).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -105,6 +110,7 @@ public class VentasDbContext : DbContext
         {
             entity.ToTable("ConfiguracionVentas", "ventas");
             entity.HasKey(e => e.IdConfiguracion);
+            entity.Property(e => e.IdConfiguracion).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.PorcentajeImpuesto).HasColumnType("numeric(5,2)");
             entity.HasIndex(e => e.IdEmpresa).IsUnique();
         });

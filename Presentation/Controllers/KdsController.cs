@@ -5,8 +5,8 @@ using System.Text.Json.Serialization;
 namespace VentasBackend.Presentation.Controllers;
 
 [ApiController]
-[Route("api/ventas/kds")]
-public class KdsController : BaseController
+[Route("api/sales/companies/{companyCen}/kds")]
+public class KdsController : ControllerBase
 {
     private readonly IKdsService _kdsService;
     private readonly ICuentaTicketService _cuentaTicketService;
@@ -17,18 +17,24 @@ public class KdsController : BaseController
         _cuentaTicketService = cuentaTicketService;
     }
 
-    [HttpGet("{estacion}")]
-    public async Task<IActionResult> GetItemsByEstacion(string estacion)
+    private Guid ResolveCompanyId(string companyCen)
     {
-        var empresaId = GetEmpresaId();
+        if (Guid.TryParse(companyCen, out Guid id)) return id;
+        return Guid.Empty;
+    }
+
+    [HttpGet("{estacion}")]
+    public async Task<IActionResult> GetItemsByEstacion(string companyCen, string estacion)
+    {
+        var empresaId = ResolveCompanyId(companyCen);
         var items = await _kdsService.GetItemsPendientesAsync(empresaId, estacion);
         return Ok(items);
     }
 
-    [HttpPatch("items/{id}/estado")]
-    public async Task<IActionResult> ActualizarEstado(int id, [FromBody] ActualizarEstadoItemRequest request)
+    [HttpPatch("items/{id}/status")]
+    public async Task<IActionResult> ActualizarEstado(string companyCen, Guid id, [FromBody] ActualizarEstadoItemRequest request)
     {
-        var empresaId = GetEmpresaId();
+        var empresaId = ResolveCompanyId(companyCen);
         var result = await _cuentaTicketService.ActualizarEstadoItemAsync(id, request.NuevoEstado, empresaId);
         
         if (!result.Exito)

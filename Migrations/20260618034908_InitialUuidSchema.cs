@@ -1,13 +1,12 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace VentasBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialVentasSchema : Migration
+    public partial class InitialUuidSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,9 +19,8 @@ namespace VentasBackend.Migrations
                 schema: "ventas",
                 columns: table => new
                 {
-                    id_cliente = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    id_empresa = table.Column<int>(type: "integer", nullable: false),
+                    id_cliente = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id_empresa = table.Column<Guid>(type: "uuid", nullable: false),
                     nombre = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     telefono = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false)
                 },
@@ -39,15 +37,29 @@ namespace VentasBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ConfiguracionVentas",
+                schema: "ventas",
+                columns: table => new
+                {
+                    id_configuracion = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id_empresa = table.Column<Guid>(type: "uuid", nullable: false),
+                    nombre_impuesto = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    porcentaje_impuesto = table.Column<decimal>(type: "numeric(5,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfiguracionVentas", x => x.id_configuracion);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "cuentas_tickets",
                 schema: "ventas",
                 columns: table => new
                 {
-                    id_cuenta_ticket = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    id_empresa = table.Column<int>(type: "integer", nullable: false),
-                    id_almacen = table.Column<int>(type: "integer", nullable: false),
-                    id_cliente = table.Column<int>(type: "integer", nullable: true),
+                    id_cuenta_ticket = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id_empresa = table.Column<Guid>(type: "uuid", nullable: false),
+                    id_almacen = table.Column<Guid>(type: "uuid", nullable: false),
+                    id_cliente = table.Column<Guid>(type: "uuid", nullable: true),
                     numero = table.Column<int>(type: "integer", nullable: false),
                     mesero = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     estado = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
@@ -81,15 +93,14 @@ namespace VentasBackend.Migrations
                 schema: "ventas",
                 columns: table => new
                 {
-                    id_cuenta_ticket_item = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    id_cuenta_ticket = table.Column<int>(type: "integer", nullable: false),
-                    id_producto = table.Column<int>(type: "integer", nullable: false),
+                    id_cuenta_ticket_item = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id_cuenta_ticket = table.Column<Guid>(type: "uuid", nullable: false),
+                    id_producto = table.Column<Guid>(type: "uuid", nullable: false),
                     cantidad = table.Column<int>(type: "integer", nullable: false),
                     precio_unitario = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     subtotal = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     nota = table.Column<string>(type: "text", nullable: true),
-                    comanda_enviada = table.Column<bool>(type: "boolean", nullable: false)
+                    estado_comanda = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,10 +119,9 @@ namespace VentasBackend.Migrations
                 schema: "ventas",
                 columns: table => new
                 {
-                    id_pago = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    id_empresa = table.Column<int>(type: "integer", nullable: false),
-                    id_cuenta_ticket = table.Column<int>(type: "integer", nullable: false),
+                    id_pago = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id_empresa = table.Column<Guid>(type: "uuid", nullable: false),
+                    id_cuenta_ticket = table.Column<Guid>(type: "uuid", nullable: false),
                     metodo_pago = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     monto = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     fecha_pago = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
@@ -148,10 +158,17 @@ namespace VentasBackend.Migrations
                 columns: new[] { "id_empresa", "telefono" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_cuentas_ticket_items_comanda_enviada",
+                name: "IX_ConfiguracionVentas_id_empresa",
+                schema: "ventas",
+                table: "ConfiguracionVentas",
+                column: "id_empresa",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_cuentas_ticket_items_estado_comanda",
                 schema: "ventas",
                 table: "cuentas_ticket_items",
-                column: "comanda_enviada");
+                column: "estado_comanda");
 
             migrationBuilder.CreateIndex(
                 name: "IX_cuentas_ticket_items_id_cuenta_ticket",
@@ -212,6 +229,10 @@ namespace VentasBackend.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ConfiguracionVentas",
+                schema: "ventas");
+
             migrationBuilder.DropTable(
                 name: "cuentas_ticket_items",
                 schema: "ventas");

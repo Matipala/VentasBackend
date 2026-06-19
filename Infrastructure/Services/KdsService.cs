@@ -16,9 +16,8 @@ namespace VentasBackend.Application.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<object>> GetItemsPendientesAsync(int empresaId, string? estacion = null)
+        public async Task<IEnumerable<object>> GetItemsPendientesAsync(Guid empresaId, string? estacion = null)
         {
-            // El original no filtraba por estación todavía, pero dejamos el parámetro listo.
             var query = from item in _context.CuentasTicketItems
                         join cuenta in _context.CuentasTickets on item.IdCuentaTicket equals cuenta.IdCuentaTicket
                         where cuenta.IdEmpresa == empresaId

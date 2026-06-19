@@ -24,8 +24,14 @@ builder.Services.AddScoped<ICuentaTicketService, CuentaTicketService>();
 builder.Services.AddScoped<IConfiguracionService, ConfiguracionService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IKdsService, KdsService>();
-builder.Services.AddHttpClient<IInventoryClient, InventoryClient>();
-builder.Services.AddScoped<IInventoryClient, InventoryClient>();
+
+builder.Services.AddHttpClient<IInventoryClient, InventoryClient>(client =>
+{
+    var baseUrl = builder.Configuration["InventoryApi:BaseUrl"] 
+                  ?? builder.Configuration["Integration:InventarioBaseUrl"] 
+                  ?? "http://localhost:5140";
+    client.BaseAddress = new Uri(baseUrl);
+});
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
