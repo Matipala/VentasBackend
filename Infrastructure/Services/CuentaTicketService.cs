@@ -132,6 +132,11 @@ public class CuentaTicketService : ICuentaTicketService
             var validation = await _inventoryClient.ValidateStockAsync(companyCen, warehouseCen, stockItems);
             if (!validation.IsValid)
             {
+                var systemRequirement = validation.Requirements.FirstOrDefault(r => r.ProductCen == "SISTEMA");
+                if (systemRequirement != null)
+                {
+                    return (false, systemRequirement.Reason, null);
+                }
                 var faltantes = string.Join(", ", validation.Requirements.Select(r => $"{r.ProductCen} (Faltan {r.MissingQuantity})"));
                 return (false, $"Stock insuficiente en Inventario: {faltantes}", null);
             }
@@ -145,7 +150,11 @@ public class CuentaTicketService : ICuentaTicketService
 
         try
         {
-            await _inventoryClient.ConsumeStockAsync(companyCen, warehouseCen, cuenta.IdCuentaTicket.ToString(), "Venta POS", stockItems);
+            var consumoOk = await _inventoryClient.ConsumeStockAsync(companyCen, warehouseCen, cuenta.IdCuentaTicket.ToString(), "Venta POS", stockItems);
+            if (!consumoOk)
+            {
+                return (false, "No se pudo consumir stock. El sistema de inventario no está disponible.", null);
+            }
         }
         catch (Exception ex)
         {
