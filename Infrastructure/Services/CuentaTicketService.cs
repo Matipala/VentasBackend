@@ -283,6 +283,16 @@ public class CuentaTicketService : ICuentaTicketService
 
     public async Task<(bool Exito, string Mensaje, CuentaTicketResponse? Cuenta)> ReenviarComandaAsync(Guid idCuentaTicket, Guid idEmpresa)
     {
+        var items = await _context.CuentasTicketItems
+            .Where(i => i.IdCuentaTicket == idCuentaTicket && i.EstadoComanda == "NUEVO")
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            item.EstadoComanda = "PENDIENTE";
+        }
+
+        await _context.SaveChangesAsync();
         await _hubContext.Clients.All.SendAsync("UpdateKds");
         return (true, "Comanda reenviada", await ObtenerCuentaAsync(idCuentaTicket, idEmpresa));
     }

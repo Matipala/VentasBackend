@@ -1,75 +1,91 @@
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using VentasBackend.Application.Interface;
 using VentasBackend.Infrastructure.Data;
 
-namespace VentasBackend.Application.Services
+namespace VentasBackend.Application.Services;
+
+public class DashboardService : IDashboardService
 {
-    public class DashboardService : IDashboardService
+    private readonly VentasDbContext _context;
+    private readonly IInventoryClient _inventoryClient;
+
+    public DashboardService(VentasDbContext context, IInventoryClient inventoryClient)
     {
-        private readonly VentasDbContext _context;
+        _context = context;
+        _inventoryClient = inventoryClient;
+    }
 
-        public DashboardService(VentasDbContext context)
+    public async Task<object> GetResumenDiarioAsync(Guid empresaId)
+    {
+        var hoy = DateTime.UtcNow.Date;
+
+        var pagosHoy = await _context.Pagos
+            .Where(p => p.IdEmpresa == empresaId && p.FechaPago >= hoy)
+            .ToListAsync();
+
+        var totalVentas = pagosHoy.Sum(p => p.Monto);
+        var cantidadTickets = pagosHoy.Count;
+        var promedioTicket = cantidadTickets > 0 ? totalVentas / cantidadTickets : 0;
+
+        return new
         {
-            _context = context;
-        }
+            totalSales = totalVentas,
+            ticketsCount = cantidadTickets,
+            averageTicket = promedioTicket
+        };
+    }
 
-        public async Task<object> GetResumenDiarioAsync(Guid empresaId)
-        {
-            var hoy = DateTime.UtcNow.Date;
+    public async Task<IEnumerable<object>> GetTopProductosAsync(Guid empresaId)
+    {
+        var hoy = DateTime.UtcNow.Date;
+        var companyCen = empresaId.ToString();
 
-            var pagosHoy = await _context.Pagos
-                .Where(p => p.IdEmpresa == empresaId && p.FechaPago >= hoy)
-                .ToListAsync();
-
-            var totalVentas = pagosHoy.Sum(p => p.Monto);
-            var cantidadTickets = pagosHoy.Count;
-            var promedioTicket = cantidadTickets > 0 ? totalVentas / cantidadTickets : 0;
-
-            return new
+        var topItems = await _context.CuentasTicketItems
+            .Join(_context.CuentasTickets, 
+                  i => i.IdCuentaTicket, 
+                  c => c.IdCuentaTicket, 
+                  (i, c) => new { Item = i, Cuenta = c })
+            .Where(x => x.Cuenta.IdEmpresa == empresaId && x.Cuenta.Estado == "PAGADO" && x.Cuenta.FechaPago >= hoy)
+            .GroupBy(x => x.Item.IdProducto)
+            .Select(g => new
             {
-                totalVentas,
-                cantidadTickets,
-                promedioTicket
-            };
-        }
+                IdProducto = g.Key,
+                Cantidad = g.Sum(x => x.Item.Cantidad)
+            })
+            .OrderByDescending(x => x.Cantidad)
+            .Take(5)
+            .ToListAsync();
 
-        public async Task<IEnumerable<object>> GetTopProductosAsync(Guid empresaId)
+        var productCens = topItems.Select(t => t.IdProducto.ToString()).ToList();
+        Dictionary<string, string> productNames;
+        try
         {
-            var hoy = DateTime.UtcNow.Date;
-
-            return await _context.CuentasTicketItems
-                .Join(_context.CuentasTickets, 
-                      i => i.IdCuentaTicket, 
-                      c => c.IdCuentaTicket, 
-                      (i, c) => new { Item = i, Cuenta = c })
-                .Where(x => x.Cuenta.IdEmpresa == empresaId && x.Cuenta.Estado == "PAGADO" && x.Cuenta.FechaPago >= hoy)
-                .GroupBy(x => x.Item.IdProducto)
-                .Select(g => new
-                {
-                    IdProducto = g.Key,
-                    Cantidad = g.Sum(x => x.Item.Cantidad)
-                })
-                .OrderByDescending(x => x.Cantidad)
-                .Take(5)
-                .ToListAsync();
+            productNames = await _inventoryClient.LookupProductNamesAsync(companyCen, productCens);
         }
-
-        public async Task<IEnumerable<object>> GetCargaKdsAsync(Guid empresaId)
+        catch
         {
-            return await _context.CuentasTicketItems
-                .Join(_context.CuentasTickets, i => i.IdCuentaTicket, c => c.IdCuentaTicket, (i, c) => new { Item = i, Cuenta = c })
-                .Where(x => x.Cuenta.IdEmpresa == empresaId && x.Cuenta.Estado == "ABIERTO")
-                .GroupBy(x => x.Item.EstadoComanda)
-                .Select(g => new
-                {
-                    Estado = g.Key,
-                    Cantidad = g.Count()
-                })
-                .ToListAsync();
+            productNames = new Dictionary<string, string>();
         }
+
+        return topItems.Select(t => new
+        {
+            productCen = t.IdProducto.ToString(),
+            productName = productNames.GetValueOrDefault(t.IdProducto.ToString(), $"Producto {t.IdProducto}"),
+            totalQuantity = t.Cantidad
+        });
+    }
+
+    public async Task<IEnumerable<object>> GetCargaKdsAsync(Guid empresaId)
+    {
+        return await _context.CuentasTicketItems
+            .Join(_context.CuentasTickets, i => i.IdCuentaTicket, c => c.IdCuentaTicket, (i, c) => new { Item = i, Cuenta = c })
+            .Where(x => x.Cuenta.IdEmpresa == empresaId && x.Cuenta.Estado == "ABIERTO")
+            .GroupBy(x => x.Item.EstadoComanda)
+            .Select(g => new
+            {
+                estado = g.Key,
+                cantidad = g.Count()
+            })
+            .ToListAsync();
     }
 }

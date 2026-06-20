@@ -89,7 +89,7 @@ public class CuentasTicketsController : ControllerBase
         return Ok(result.Cuenta);
     }
 
-    [HttpPatch("{id}/waiter")]
+    [HttpPut("{id}/waiter")]
     public async Task<IActionResult> ActualizarMesero(string companyCen, Guid id, [FromBody] UpdateMeseroRequest request)
     {
         var empresaId = ResolveCompanyId(companyCen);
